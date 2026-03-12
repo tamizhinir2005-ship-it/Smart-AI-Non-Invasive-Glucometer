@@ -10,10 +10,9 @@ const app = express();
 // Middleware
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'x-auth-token', 'Authorization']
 }));
-app.options('*', cors());
 app.use(express.json());
 
 // Routes
