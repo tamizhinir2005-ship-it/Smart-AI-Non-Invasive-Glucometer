@@ -22,17 +22,28 @@ router.post('/', auth, async (req, res) => {
 
         const reading = await newReading.save();
 
-        // Trigger background incremental update
+        // Detect platform to use correct python command
+        const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
         const pythonScriptPath = path.join(__dirname, '..', 'ml', 'update_lstm.py');
-        const pythonProcess = spawn('python', [pythonScriptPath, req.user.id]);
+        
+        try {
+            const pythonProcess = spawn(pythonCommand, [pythonScriptPath, req.user.id]);
 
-        pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-                console.error(`Background LSTM update exited with code ${code}`);
-            } else {
-                console.log(`LSTM incrementally updated for user ${req.user.id}`);
-            }
-        });
+            pythonProcess.on('error', (err) => {
+                console.error('Failed to start Python background process:', err.message);
+            });
+
+            pythonProcess.on('close', (code) => {
+                if (code !== 0) {
+                    console.error(`Background LSTM update exited with code ${code}`);
+                } else {
+                    console.log(`LSTM incrementally updated for user ${req.user.id}`);
+                }
+            });
+        } catch (spawnError) {
+            console.error('Immediate spawn error:', spawnError.message);
+            // Non-blocking
+        }
 
         res.json(reading);
     } catch (err) {

@@ -27,7 +27,8 @@ def update_model(user_id):
             logging.warning("Model or scaler not found. Running full training instead.")
             # Alternatively, we could trigger train_lstm.py here
             import subprocess
-            subprocess.run(["python", os.path.join(os.path.dirname(__file__), "train_lstm.py"), user_id])
+            py_cmd = "python3" if sys.platform != "win32" else "python"
+            subprocess.run([py_cmd, os.path.join(os.path.dirname(__file__), "train_lstm.py"), user_id])
             sys.exit(0)
             
         # 2. Fetch recent data from MongoDB
