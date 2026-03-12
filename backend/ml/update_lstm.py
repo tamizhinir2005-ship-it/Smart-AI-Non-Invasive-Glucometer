@@ -9,8 +9,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 from bson.objectid import ObjectId
 
 def get_db():
-    client = MongoClient("mongodb://localhost:27017/") # Adjust URI to app config
-    db = client["diabetic-app"] # Assuming standard db name
+    mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+    client = MongoClient(mongo_uri)
+    db = client["diabetic-app"] # Note: Atlas URI usually includes the DB name, but pymongo handles it
     return db
 
 def update_model(user_id):

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 
@@ -16,7 +17,7 @@ export default function ResetPassword() {
         if (password !== confirmPassword) return setError("Passwords don't match");
 
         try {
-            await axios.put(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
+            await axios.put(`${API_URL}/api/auth/reset-password/${token}`, { password });
             setMessage('Password updated successfully. Redirecting to login...');
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const AuthContext = createContext();
 
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
                 try {
                     // Verify token and get user
-                    const res = await axios.get('http://localhost:5000/api/auth/me');
+                    const res = await axios.get(`${API_URL}/api/auth/me`);
                     setUser(res.data);
                     setIsAuthenticated(true);
                 } catch (err) {
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, rememberMe) => {
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+            const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
             const { token, isProfileComplete } = res.data;
 
             if (rememberMe) {
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }) => {
             axios.defaults.headers.common['x-auth-token'] = token;
 
             // Fetch user data
-            const userRes = await axios.get('http://localhost:5000/api/auth/me');
+            const userRes = await axios.get(`${API_URL}/api/auth/me`);
             setUser(userRes.data);
 
             setIsAuthenticated(true);
@@ -66,14 +67,14 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (email, password) => {
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', { email, password });
+            const res = await axios.post(`${API_URL}/api/auth/register`, { email, password });
             const { token, isProfileComplete } = res.data;
 
             sessionStorage.setItem('token', token);
             axios.defaults.headers.common['x-auth-token'] = token;
 
             // Fetch user data
-            const userRes = await axios.get('http://localhost:5000/api/auth/me');
+            const userRes = await axios.get(`${API_URL}/api/auth/me`);
             setUser(userRes.data);
 
             setIsAuthenticated(true);
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
         try {
             // Ensure we map any legacy or alternative names back to schema fields if needed, 
             // but Profile.jsx now uses the correct ones.
-            const res = await axios.put('http://localhost:5000/api/auth/profile', data);
+            const res = await axios.put(`${API_URL}/api/auth/profile`, data);
             setUser(res.data);
             return { success: true };
         } catch (err) {

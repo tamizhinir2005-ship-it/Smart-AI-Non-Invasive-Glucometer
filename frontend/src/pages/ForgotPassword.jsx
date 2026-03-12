@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft } from 'lucide-react';
 
@@ -12,7 +13,7 @@ export default function ForgotPassword() {
         e.preventDefault();
         try {
             // Assuming backend URL matches
-            await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+            await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
             setMessage('Password reset email sent (check console/logs for simulated email if not configured).');
             setError('');
         } catch (err) {

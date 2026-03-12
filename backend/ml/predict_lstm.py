@@ -26,7 +26,8 @@ def predict_next(user_id):
         from bson.objectid import ObjectId
         
         # 2. Fetch last 5 readings
-        client = MongoClient("mongodb://localhost:27017/") # Adjust URI to app config
+        mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+        client = MongoClient(mongo_uri)
         db = client["diabetic-app"] # Assuming standard db name
         readings = list(db.readings.find({"user": ObjectId(user_id)}).sort("recordedAt", -1).limit(5))
         

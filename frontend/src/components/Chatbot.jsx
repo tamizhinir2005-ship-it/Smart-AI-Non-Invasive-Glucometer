@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import { MessageCircle, X, Send, Bot, Info, Apple, Activity, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
@@ -44,7 +45,7 @@ export default function Chatbot() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const config = { headers: { 'x-auth-token': token } };
 
-            const res = await axios.post('http://localhost:5000/api/chat', { message: userMessage.content }, config);
+            const res = await axios.post(`${API_URL}/api/chat`, { message: userMessage.content }, config);
 
             const botMessage = { role: 'assistant', content: res.data.reply };
             setMessages(prev => [...prev, botMessage]);

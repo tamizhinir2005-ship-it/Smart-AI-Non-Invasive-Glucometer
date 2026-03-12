@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Activity, TrendingUp, Calendar, ArrowLeft, Bot } from 'lucide-react';
 import GlucoseChart from '../components/GlucoseChart';
@@ -19,10 +20,10 @@ export default function Trends() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const config = { headers: { 'x-auth-token': token } };
 
-            const res = await axios.get('http://localhost:5000/api/readings', config);
+            const res = await axios.get(`${API_URL}/api/readings`, config);
             setReadings(res.data);
 
-            const statsRes = await axios.get('http://localhost:5000/api/readings/stats', config);
+            const statsRes = await axios.get(`${API_URL}/api/readings/stats`, config);
             setStats(statsRes.data);
         } catch (err) {
             console.error("Error fetching data", err);
@@ -55,7 +56,7 @@ export default function Trends() {
         if (!window.confirm("Are you sure?")) return;
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/readings/${id}`, { headers: { 'x-auth-token': token } });
+            await axios.delete(`${API_URL}/api/readings/${id}`, { headers: { 'x-auth-token': token } });
             fetchReadings();
         } catch (err) {
             console.error(err);
@@ -66,7 +67,7 @@ export default function Trends() {
         setIsTraining(true);
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/readings/train-model', {}, { headers: { 'x-auth-token': token } });
+            const res = await axios.post(`${API_URL}/api/readings/train-model`, {}, { headers: { 'x-auth-token': token } });
             alert(res.data.msg || "Model trained successfully!");
         } catch (err) {
             console.error(err);

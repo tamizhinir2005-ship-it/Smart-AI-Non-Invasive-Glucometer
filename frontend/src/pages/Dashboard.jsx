@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { LogOut } from 'lucide-react';
 import QuickActions from '../components/QuickActions';
@@ -21,7 +22,7 @@ export default function Dashboard() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const config = { headers: { 'x-auth-token': token } };
 
-            const res = await axios.get('http://localhost:5000/api/readings', config);
+            const res = await axios.get(`${API_URL}/api/readings`, config);
             setReadings(res.data);
         } catch (err) {
             console.error("Error fetching data", err);
@@ -38,7 +39,7 @@ export default function Dashboard() {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/readings', newReading, { headers: { 'x-auth-token': token } });
+            await axios.post(`${API_URL}/api/readings`, newReading, { headers: { 'x-auth-token': token } });
             setShowModal(false);
             setNewReading({ glucoseLevel: '', measurementType: 'Random', notes: '' });
             fetchReadings();
@@ -51,7 +52,7 @@ export default function Dashboard() {
         setIsPredicting(true);
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/readings/predict-next', { headers: { 'x-auth-token': token } });
+            const res = await axios.get(`${API_URL}/api/readings/predict-next`, { headers: { 'x-auth-token': token } });
 
             if (res.data && res.data.prediction) {
                 alert(`Predicted Next Glucose Level: ${res.data.prediction.toFixed(1)} mg/dL`);
