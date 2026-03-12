@@ -41,7 +41,10 @@ const connectDB = async () => {
         if (!process.env.MONGO_URI) {
             throw new Error('MONGO_URI is not defined in environment variables');
         }
-        await mongoose.connect(process.env.MONGO_URI, {
+        // Clean URI: remove spaces and accidental :27017 which is not allowed in +srv
+        const cleanUri = process.env.MONGO_URI.trim().replace(':27017', '');
+        
+        await mongoose.connect(cleanUri, {
             serverSelectionTimeoutMS: 5000, 
             socketTimeoutMS: 45000,
         });
