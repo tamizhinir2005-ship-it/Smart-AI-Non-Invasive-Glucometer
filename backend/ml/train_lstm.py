@@ -11,8 +11,18 @@ from bson.objectid import ObjectId
 def get_db():
     mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
     client = MongoClient(mongo_uri)
-    db = client["diabetic-app"] # Note: Atlas URI usually includes the DB name, but pymongo handles it
-    return db
+    
+    # Try to get database name from URI, fallback to diabetic-app
+    db_name = "diabetic-app"
+    try:
+        if "/" in mongo_uri.split("//")[-1]:
+            uri_path = mongo_uri.split("/")[-1].split("?")[0]
+            if uri_path:
+                db_name = uri_path
+    except:
+        pass
+        
+    return client[db_name]
 
 def train_model(user_id):
     try:

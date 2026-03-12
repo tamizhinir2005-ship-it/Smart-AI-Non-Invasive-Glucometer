@@ -28,7 +28,18 @@ def predict_next(user_id):
         # 2. Fetch last 5 readings
         mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
         client = MongoClient(mongo_uri)
-        db = client["diabetic-app"] # Assuming standard db name
+        
+        # Try to get database name from URI, fallback to diabetic-app
+        db_name = "diabetic-app"
+        try:
+            if "/" in mongo_uri.split("//")[-1]:
+                uri_path = mongo_uri.split("/")[-1].split("?")[0]
+                if uri_path:
+                    db_name = uri_path
+        except:
+            pass
+            
+        db = client[db_name]
         readings = list(db.readings.find({"user": ObjectId(user_id)}).sort("recordedAt", -1).limit(5))
         
         if len(readings) < 5:

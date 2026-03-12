@@ -22,28 +22,17 @@ router.post('/', auth, async (req, res) => {
 
         const reading = await newReading.save();
 
-        // Detect platform to use correct python command
-        const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
+        // Trigger background incremental update
         const pythonScriptPath = path.join(__dirname, '..', 'ml', 'update_lstm.py');
-        
-        try {
-            const pythonProcess = spawn(pythonCommand, [pythonScriptPath, req.user.id]);
+        const pythonProcess = spawn('python', [pythonScriptPath, req.user.id]);
 
-            pythonProcess.on('error', (err) => {
-                console.error('Failed to start Python background process:', err.message);
-            });
-
-            pythonProcess.on('close', (code) => {
-                if (code !== 0) {
-                    console.error(`Background LSTM update exited with code ${code}`);
-                } else {
-                    console.log(`LSTM incrementally updated for user ${req.user.id}`);
-                }
-            });
-        } catch (spawnError) {
-            console.error('Immediate spawn error:', spawnError.message);
-            // Non-blocking
-        }
+        pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+                console.error(`Background LSTM update exited with code ${code}`);
+            } else {
+                console.log(`LSTM incrementally updated for user ${req.user.id}`);
+            }
+        });
 
         res.json(reading);
     } catch (err) {
@@ -136,7 +125,17 @@ router.delete('/:id', auth, async (req, res) => {
 router.post('/train-model', auth, async (req, res) => {
     try {
         const pythonScriptPath = path.join(__dirname, '..', 'ml', 'train_lstm.py');
-        const pythonProcess = spawn('python', [pythonScriptPath, req.user.id]);
+        
+        // Use venv python on Render, fallback to system python
+        const venvPythonPath = path.join(__dirname, '..', 'ml', 'venv', 'bin', 'python');
+        const fs = require('fs');
+        const pythonCmd = fs.existsSync(venvPythonPath) ? venvPythonPath : 'python';
+        
+        console.log(`Starting training with: ${pythonCmd} ${pythonScriptPath} ${req.user.id}`);
+
+        const pythonProcess = spawn(pythonCmd, [pythonScriptPath, req.user.id], {
+            env: { ...process.env, PYTHONPATH: path.join(__dirname, '..', 'ml') }
+        });
 
         let outputData = '';
         let errorData = '';
@@ -152,7 +151,11 @@ router.post('/train-model', auth, async (req, res) => {
         pythonProcess.on('close', (code) => {
             if (code !== 0) {
                 console.error('Python error:', errorData);
-                return res.status(500).json({ msg: 'Error training model', details: errorData });
+                return res.status(500).json({ 
+                    msg: 'Error training model', 
+                    details: errorData || outputData,
+                    code: code 
+                });
             }
             res.json({ msg: 'Model training completed successfully.', output: outputData });
         });
@@ -168,7 +171,17 @@ router.post('/train-model', auth, async (req, res) => {
 router.get('/predict-next', auth, async (req, res) => {
     try {
         const pythonScriptPath = path.join(__dirname, '..', 'ml', 'predict_lstm.py');
-        const pythonProcess = spawn('python', [pythonScriptPath, req.user.id]);
+        
+        // Use venv python on Render, fallback to system python
+        const venvPythonPath = path.join(__dirname, '..', 'ml', 'venv', 'bin', 'python');
+        const fs = require('fs');
+        const pythonCmd = fs.existsSync(venvPythonPath) ? venvPythonPath : 'python';
+
+        console.log(`Starting prediction with: ${pythonCmd} ${pythonScriptPath} ${req.user.id}`);
+
+        const pythonProcess = spawn(pythonCmd, [pythonScriptPath, req.user.id], {
+            env: { ...process.env, PYTHONPATH: path.join(__dirname, '..', 'ml') }
+        });
 
         let outputData = '';
         let errorData = '';
@@ -188,7 +201,11 @@ router.get('/predict-next', auth, async (req, res) => {
                     const parsedError = JSON.parse(outputData || errorData);
                     return res.status(400).json(parsedError);
                 } catch (e) {
-                    return res.status(500).json({ msg: 'Error making prediction', details: errorData || outputData });
+                    return res.status(500).json({ 
+                        msg: 'Error making prediction', 
+                        details: errorData || outputData,
+                        code: code
+                    });
                 }
             }
             try {

@@ -11,8 +11,18 @@ from bson.objectid import ObjectId
 def get_db():
     mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
     client = MongoClient(mongo_uri)
-    db = client["diabetic-app"] # Note: Atlas URI usually includes the DB name, but pymongo handles it
-    return db
+    
+    # Try to get database name from URI, fallback to diabetic-app
+    db_name = "diabetic-app"
+    try:
+        if "/" in mongo_uri.split("//")[-1]:
+            uri_path = mongo_uri.split("/")[-1].split("?")[0]
+            if uri_path:
+                db_name = uri_path
+    except:
+        pass
+        
+    return client[db_name]
 
 def update_model(user_id):
     try:
@@ -27,8 +37,7 @@ def update_model(user_id):
             logging.warning("Model or scaler not found. Running full training instead.")
             # Alternatively, we could trigger train_lstm.py here
             import subprocess
-            py_cmd = "python3" if sys.platform != "win32" else "python"
-            subprocess.run([py_cmd, os.path.join(os.path.dirname(__file__), "train_lstm.py"), user_id])
+            subprocess.run(["python", os.path.join(os.path.dirname(__file__), "train_lstm.py"), user_id])
             sys.exit(0)
             
         # 2. Fetch recent data from MongoDB
