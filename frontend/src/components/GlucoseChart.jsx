@@ -4,10 +4,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const GlucoseChart = ({ data }) => {
     // Data should be array of { recordedAt, glucoseLevel }
     // Format date for XAxis
-    const formattedData = data.map(item => ({
-        ...item,
-        time: new Date(item.recordedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    })).reverse(); // Reverse if data comes in desc order (newest first) but chart needs oldest first? Yes, usually left to right.
+    // Format data and ensure chronological order for the chart
+    const formattedData = [...data].sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
 
     return (
         <div className="h-64 w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -21,9 +19,22 @@ const GlucoseChart = ({ data }) => {
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                    <XAxis 
+                        dataKey="recordedAt" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fill: '#9ca3af' }}
+                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        minTickGap={30}
+                    />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
                     <Tooltip
+                        labelFormatter={(label) => new Date(label).toLocaleString(undefined, { 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
                         contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                         itemStyle={{ color: '#3b82f6' }}
                     />
